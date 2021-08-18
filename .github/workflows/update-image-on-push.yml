@@ -38,21 +38,21 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/simple-monerod:latest
-            ghcr.io/${{ github.repository_owner }}/simple-monerod:${{ steps.get_tag.outputs.tag }}
-            ${{ secrets.DOCKER_USERNAME }}/simple-monerod:latest
-            ${{ secrets.DOCKER_USERNAME }}/simple-monerod:${{ steps.get_tag.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/simple-monero-wallet-rpc:latest
+            ghcr.io/${{ github.repository_owner }}/simple-monero-wallet-rpc:${{ steps.get_tag.outputs.tag }}
+            ${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:latest
+            ${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:${{ steps.get_tag.outputs.tag }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simple-monerod:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:latest
           cache-to: type=inline
       - 
         name: Scan new image and output results
         uses: Azure/container-scan@v0
         with:
-          image-name: ${{ secrets.DOCKER_USERNAME }}/simple-monerod:${{ steps.get_tag.outputs.tag }}
+          image-name: ${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:${{ steps.get_tag.outputs.tag }}
           severity-threshold: HIGH
       -
         name: Image digest

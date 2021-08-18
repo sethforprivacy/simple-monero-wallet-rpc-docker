@@ -61,15 +61,11 @@ USER monero
 
 # Switch to home directory and install newly built monerod binary
 WORKDIR /home/monero
-COPY --chown=monero:monero --from=build /monero/build/release/bin/monerod /usr/local/bin/monerod
+COPY --chown=monero:monero --from=build /monero/build/release/bin/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
 
 # Expose p2p and restricted RPC ports
-EXPOSE 18080
-EXPOSE 18089
-
-# Add HEALTHCHECK against get_info endpoint
-HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://localhost:18089/get_info || exit 1
+EXPOSE 18083
 
 # Start monerod with required --non-interactive flag and sane defaults that are overridden by user input (if applicable)
-ENTRYPOINT ["monerod", "--non-interactive"]
-CMD ["--rpc-restricted-bind-ip=0.0.0.0", "--rpc-restricted-bind-port=18089", "--no-igd", "--no-zmq", "--enable-dns-blocklist"]
+ENTRYPOINT ["monero-wallet-rpc", "--non-interactive"]
+CMD ["--rpc-bind-port=18083"]

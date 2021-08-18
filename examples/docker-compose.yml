@@ -16,6 +16,18 @@ services:
       - "--no-igd"
       - "--enable-dns-blocklist"
       - "--prune-blockchain"
+  
+  monero-wallet-rpc:
+    image: sethsimmons/simple-monero-wallet-rpc:latest
+    restart: unless-stopped
+    container_name: monero-wallet-rpc
+    volumes:
+      - monero-wallet-rpc-data:/home/monero
+    ports:
+      - 127.0.0.1:18083:18083
+    command:
+      - "--daemon-address=monerod:18089"
+      - "--trusted-daemon"
 
   tor:
     image: goldy/tor-hidden-service:latest
