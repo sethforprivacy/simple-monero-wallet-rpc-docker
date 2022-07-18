@@ -1,5 +1,5 @@
 # From https://github.com/leonardochaia/docker-monerod/blob/master/src/Dockerfile
-ARG MONERO_BRANCH=v0.17.3.2
+ARG MONERO_BRANCH=v0.18.0.0
 
 # Select Ubuntu 20.04LTS for the build image base
 FROM ubuntu:20.04 as build
@@ -10,12 +10,19 @@ LABEL author="sethsimmons@pm.me" \
 # Added DEBIAN_FRONTEND=noninteractive to workaround tzdata prompt on installation
 RUN apt-get update \
     && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends build-essential cmake \
-    pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev ca-certificates \
-    libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev \
-    libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev \
-    libusb-dev libprotobuf-dev protobuf-compiler libgtest-dev git \
-    libnorm-dev libpgm-dev libusb-1.0-0-dev libudev-dev libgssapi-krb5-2 \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+    automake \
+    autotools-dev \
+    bsdmainutils \
+    build-essential \
+    ca-certificates \
+    ccache \
+    cmake \
+    curl \
+    git \
+    libtool \
+    pkg-config \
+    gperf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,12 +30,6 @@ ENV CFLAGS='-fPIC'
 ENV CXXFLAGS='-fPIC'
 ENV USE_SINGLE_BUILDDIR 1
 ENV BOOST_DEBUG         1
-
-# Switch to directory for gtest and make/install libs
-WORKDIR /usr/src/gtest
-RUN cmake . \
-    && make \
-    && cp ./lib/libgtest*.a /usr/lib
 
 # Switch to Monero source directory
 WORKDIR /monero
@@ -41,7 +42,7 @@ RUN git clone --recursive --branch ${MONERO_BRANCH} \
 
 # Make static Monero binaries
 ARG NPROC
-RUN test -z "$NPROC" && nproc > /nproc || echo -n "$NPROC" > /nproc && make -j"$(cat /nproc)" release-static
+RUN test -z "$NPROC" && nproc > /nproc || echo -n "$NPROC" > /nproc && make -j"$(cat /nproc)" depends target=x86_64-linux-gnu
 
 # Select Ubuntu 20.04LTS for the image base
 FROM ubuntu:20.04
@@ -49,7 +50,7 @@ FROM ubuntu:20.04
 # Install remaining dependencies
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install --no-install-recommends -y curl libnorm-dev libpgm-dev libgssapi-krb5-2 \
+    && apt-get install --no-install-recommends -y ca-certificates curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -61,7 +62,7 @@ USER monero
 
 # Switch to home directory and install newly built monerod binary
 WORKDIR /home/monero
-COPY --chown=monero:monero --from=build /monero/build/release/bin/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
+COPY --chown=monero:monero --from=build /monero/build/x86_64-linux-gnu/release/bin/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
 
 # Expose p2p and restricted RPC ports
 EXPOSE 18083
