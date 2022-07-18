@@ -31,12 +31,6 @@ ENV CXXFLAGS='-fPIC'
 ENV USE_SINGLE_BUILDDIR 1
 ENV BOOST_DEBUG         1
 
-# Switch to directory for gtest and make/install libs
-WORKDIR /usr/src/gtest
-RUN cmake . \
-    && make \
-    && cp ./lib/libgtest*.a /usr/lib
-
 # Switch to Monero source directory
 WORKDIR /monero
 
