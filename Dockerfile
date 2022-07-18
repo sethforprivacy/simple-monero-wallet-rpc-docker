@@ -62,7 +62,7 @@ USER monero
 
 # Switch to home directory and install newly built monerod binary
 WORKDIR /home/monero
-COPY --chown=monero:monero --from=build /monero/build/release/bin/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
+COPY --chown=monero:monero --from=build /monero/build/x86_64-linux-gnu/release/bin/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
 
 # Expose p2p and restricted RPC ports
 EXPOSE 18083
