@@ -10,12 +10,19 @@ LABEL author="sethsimmons@pm.me" \
 # Added DEBIAN_FRONTEND=noninteractive to workaround tzdata prompt on installation
 RUN apt-get update \
     && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends build-essential cmake \
-    curl pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev ca-certificates \
-    libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev \
-    libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev \
-    libusb-dev libprotobuf-dev protobuf-compiler libgtest-dev git \
-    libnorm-dev libpgm-dev libusb-1.0-0-dev libudev-dev libgssapi-krb5-2 \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+    automake \
+    autotools-dev \
+    bsdmainutils \
+    build-essential \
+    ca-certificates \
+    ccache \
+    cmake \
+    curl \
+    git \
+    libtool \
+    pkg-config \
+    gperf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
