@@ -11,7 +11,7 @@ LABEL author="sethsimmons@pm.me" \
 RUN apt-get update \
     && apt-get upgrade -y \
     && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends build-essential cmake \
-    pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev ca-certificates \
+    curl pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev ca-certificates \
     libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev \
     libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev \
     libusb-dev libprotobuf-dev protobuf-compiler libgtest-dev git \
