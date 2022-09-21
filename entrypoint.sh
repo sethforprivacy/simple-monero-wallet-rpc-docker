@@ -4,7 +4,7 @@
 set -e
 
 # Set require --non-interactive flag
-set -- "monero-wallet-rpc" "--non-interactive" "$@"
+set -- "monero-wallet-rpc" "--non-interactive" "--rpc-bind-ip=0.0.0.0" "$@"
 
 # Start the daemon using fixuid
 # to adjust permissions if needed
