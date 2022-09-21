@@ -150,7 +150,7 @@ RUN set -ex && apk add --update --no-cache \
 
 # Add user and setup directories for monerod\
 ARG MONERO_USER="monero"
-RUN useradd -ms /bin/bash ${MONERO_USER} \
+RUN set -ex && adduser -Ds /bin/bash monero \
     && mkdir -p /home/${MONERO_USER}/wallet \
     && chown -R ${MONERO_USER}:${MONERO_USER} /home/${MONERO_USER}/wallet
 
