@@ -183,4 +183,4 @@ WORKDIR /home/${MONERO_USER}/wallet
 EXPOSE 18083
 
 # Start monerod with sane defaults that are overridden by user input (if applicable)
-CMD ["--wallet-dir /home/monero/wallet", "--rpc-bind-port=18083"]
+CMD ["--wallet-dir=/home/monero/wallet", "--rpc-bind-port=18083"]
