@@ -7,8 +7,8 @@ ARG MONERO_BRANCH=v0.18.1.2
 # Set the proper HEAD commit hash for the given branch/tag in MONERO_BRANCH
 ARG MONERO_COMMIT_HASH=66184f30859796f3c7c22f9497e41b15b5a4a7c9
 
-# Select Alpine 3.x for the build image base
-FROM alpine:3 as build
+# Select Alpine 3.16 for the build image base
+FROM alpine:3.16 as build
 LABEL author="seth@sethforprivacy.com" \
       maintainer="seth@sethforprivacy.com"
 
@@ -131,8 +131,8 @@ RUN set -ex && git clone --recursive --branch ${MONERO_BRANCH} \
     && cd /monero && nice -n 19 ionice -c2 -n7 make -j${NPROC:-$(nproc)} -C build/release wallet_rpc_server
 
 # Begin final image build
-# Select Alpine 3.x for the base image
-FROM alpine:3
+# Select Alpine 3.16 for the base image
+FROM alpine:3.16
 
 # Upgrade base image
 RUN set -ex && apk --update --no-cache upgrade
