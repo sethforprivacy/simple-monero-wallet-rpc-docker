@@ -131,7 +131,7 @@ RUN set -ex && git clone --recursive --branch ${MONERO_BRANCH} \
     esac \
     && mkdir -p build/release && cd build/release \
     && cmake -D ARCH=${CMAKE_ARCH} -D STATIC=ON -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release -D BUILD_TAG=${CMAKE_BUILD_TAG} -D STACK_TRACE=OFF ../.. \
-    && cd /monero && nice -n 19 ionice -c2 -n7 make -j${NPROC:-$(nproc)} -C build/release daemon
+    && cd /monero && nice -n 19 ionice -c2 -n7 make -j${NPROC:-$(nproc)} -C build/release wallet_rpc_server
 
 # Begin final image build
 # Select Alpine 3 for the base image
