@@ -11,46 +11,50 @@ on:
     - 'Dockerfile'
   workflow_dispatch:
 
+env:
+  GHCR_REPO: ghcr.io/${{ github.repository_owner }}/simple-monero-wallet-rpc
+
 jobs:
   rebuild-container:
     name: "Build image with cache"
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     steps:
-      - 
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.4.0
-        with:
-          platforms: linux/arm64
-      - 
+      - name: Prepare platform matrix for arm64
+        if: runner.arch == 'ARM64'
+        run: |
+          echo "PLATFORM=linux/arm64" >> $GITHUB_ENV
+          echo "DIGEST_NAME=arm64" >> $GITHUB_ENV
+      - name: Prepare platform matrix for amd64
+        if: runner.arch == 'X64'
+        run: |
+          echo "PLATFORM=linux/amd64" >> $GITHUB_ENV
+          echo "DIGEST_NAME=amd64" >> $GITHUB_ENV
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.9.0
-      - 
+      -
         name: Checkout repository
         uses: actions/checkout@v4
-      - 
-        name: Build x86_64 image
-        id: docker_build_amd64
+      -
+        name: Test build of image
+        id: build
         uses: docker/build-push-action@v6.13.0
         with:
           push: false
           load: true
-          platforms: linux/amd64
-          tags: simple-monero-wallet-rpc:alpine-test
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:latest
+          platforms: ${{ env.PLATFORM }}
+          tags: simple-monero-wallet-rpc:testing
+          cache-from: type=registry,ref=${{ env.GHCR_REPO }}:latest
       - 
-        name: Test-run x86_64 image
+        name: Test-run image
         run: |
-          docker run --rm simple-monero-wallet-rpc:alpine-test &
+          docker run --rm simple-monero-wallet-rpc:testing --wallet-dir=/home/monero/wallet --rpc-bind-port=18083 --daemon-host=node.sethforprivacy.com:18089 --trusted-daemon &
           PID=$!
-          sleep 60
+          sleep 30
           kill -SIGINT $PID # this will return a non-zero exit code if the container dies early on
-      - 
-        name: Build ARMv8 image
-        id: docker_build_arm64
-        uses: docker/build-push-action@v6.13.0
-        with:
-          push: false
-          load: true
-          platforms: linux/arm64
-          tags: simple-monero-wallet-rpc:alpine-test
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/simple-monero-wallet-rpc:latest
