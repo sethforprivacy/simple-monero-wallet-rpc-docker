@@ -38,9 +38,6 @@ jobs:
         with:
           images: |
             ${{ env.GHCR_REPO }}
-      - 
-        name: Get Monero release tag
-        run: echo MONERO_TAG="$(awk -F '=' '/MONERO_BRANCH=/ {print $2}' Dockerfile)" >> $GITHUB_ENV
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.9.0
@@ -51,9 +48,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Checkout repository
-        uses: actions/checkout@v4
       -
         name: Build and and push by digest
         uses: docker/build-push-action@v6.14.0
@@ -99,6 +93,12 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.9.0
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get Monero release tag
+        run: echo MONERO_TAG="$(awk -F '=' '/MONERO_BRANCH=/ {print $2}' Dockerfile)" >> $GITHUB_ENV
 
       - name: Docker meta
         id: meta
@@ -109,7 +109,7 @@ jobs:
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            type=semver,pattern={{version}},value=${{ env.MONERO_TAG }}
+            type=raw,value=${{ env.MONERO_TAG }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
