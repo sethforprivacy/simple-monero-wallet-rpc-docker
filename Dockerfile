@@ -8,7 +8,7 @@ ARG MONERO_BRANCH=v0.18.3.4
 ARG MONERO_COMMIT_HASH=b089f9ee69924882c5d14dd1a6991deb05d9d1cd
 
 # Select Alpine 3 for the build image base
-FROM alpine:3 AS build
+FROM alpine:20250108 AS build
 LABEL author="seth@sethforprivacy.com" \
       maintainer="seth@sethforprivacy.com"
 
@@ -135,7 +135,7 @@ RUN set -ex && git clone --recursive --branch ${MONERO_BRANCH} \
 
 # Begin final image build
 # Select Alpine 3 for the base image
-FROM alpine:3 AS final
+FROM alpine:20250108 AS final
 
 # Upgrade base image
 RUN set -ex && apk --update --no-cache upgrade
