@@ -50,7 +50,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and and push by digest
-        uses: docker/build-push-action@v6.19.0
+        uses: docker/build-push-action@v6.19.1
         id: build
         with:
           outputs: type=image,"name=${{ env.GHCR_REPO }}",push-by-digest=true,name-canonical=true,push=true
