@@ -8,7 +8,7 @@ ARG MONERO_BRANCH=v0.18.5.0
 ARG MONERO_COMMIT_HASH=3ca4c30f73fe22d16a46cfba122556437da3618d
 
 # Select Alpine 3 for the build image base
-FROM alpine:3.24 AS build
+FROM alpine:3.24.1 AS build
 LABEL author="seth@sethforprivacy.com" \
       maintainer="seth@sethforprivacy.com"
 
@@ -19,6 +19,7 @@ RUN set -ex && apk --update --no-cache upgrade
 RUN set -ex && apk add --update --no-cache \
     autoconf \
     automake \
+    bison \
     boost \
     boost-atomic \
     boost-build \
@@ -63,6 +64,7 @@ RUN set -ex && apk add --update --no-cache \
     doxygen \
     eudev-dev \
     file \
+    flex \
     g++ \
     git \
     graphviz \
@@ -92,25 +94,26 @@ ENV USE_SINGLE_BUILDDIR=1
 ENV BOOST_DEBUG=1
 
 # Build expat, a dependency for libunbound
-ARG EXPAT_VERSION="2.6.1"
-ARG EXPAT_HASH="4677d957c0c6cb2a3321101944574c24113b637c7ab1cf0659a27c5babc201fd"
-RUN set -ex && wget https://github.com/libexpat/libexpat/releases/download/R_2_6_1/expat-${EXPAT_VERSION}.tar.bz2 && \
-    echo "${EXPAT_HASH}  expat-${EXPAT_VERSION}.tar.bz2" | sha256sum -c && \
-    tar -xf expat-${EXPAT_VERSION}.tar.bz2 && \
-    rm expat-${EXPAT_VERSION}.tar.bz2 && \
-    cd expat-${EXPAT_VERSION} && \
+ARG EXPAT_VERSION=R_2_6_4
+ARG EXPAT_CHECKSUM=8dc480b796163d4436e6f1352e71800a774f73dbae213f1860b60607d2a83ada
+RUN set -ex && EXPAT_SEMVER="$(echo ${EXPAT_VERSION} | sed 's/R_//;s/_/./g')" && \
+    wget "https://github.com/libexpat/libexpat/releases/download/${EXPAT_VERSION}/expat-${EXPAT_SEMVER}.tar.bz2" && \
+    echo "${EXPAT_CHECKSUM}  expat-${EXPAT_SEMVER}.tar.bz2" | sha256sum -c && \
+    tar -xf expat-${EXPAT_SEMVER}.tar.bz2 && \
+    rm expat-${EXPAT_SEMVER}.tar.bz2 && \
+    cd expat-${EXPAT_SEMVER} && \
     ./configure --enable-static --disable-shared --prefix=/usr && \
     make -j${NPROC:-$(nproc)} && \
     make -j${NPROC:-$(nproc)} install
 
 # Build libunbound for static builds
 WORKDIR /tmp
-ARG LIBUNBOUND_VERSION="1.19.2"
-ARG LIBUNBOUND_HASH="cc560d345734226c1b39e71a769797e7fdde2265cbb77ebce542704bba489e55"
-RUN set -ex && wget https://www.nlnetlabs.nl/downloads/unbound/unbound-${LIBUNBOUND_VERSION}.tar.gz && \
-    echo "${LIBUNBOUND_HASH}  unbound-${LIBUNBOUND_VERSION}.tar.gz" | sha256sum -c && \
-    tar -xzf unbound-${LIBUNBOUND_VERSION}.tar.gz && \
-    rm unbound-${LIBUNBOUND_VERSION}.tar.gz && \
+ARG LIBUNBOUND_VERSION=release-1.22.0
+ARG LIBUNBOUND_CHECKSUM=4e32a36d57cda666b1c8ee02185ba73462330452162d1b9c31a5b91a853ba946
+RUN set -ex && wget "https://github.com/NLnetLabs/unbound/archive/refs/tags/${LIBUNBOUND_VERSION}.tar.gz"  && \
+    echo "${LIBUNBOUND_CHECKSUM}" "${LIBUNBOUND_VERSION}.tar.gz" | sha256sum -c && \
+    tar -xzf ${LIBUNBOUND_VERSION}.tar.gz && \
+    rm ${LIBUNBOUND_VERSION}.tar.gz && \
     cd unbound-${LIBUNBOUND_VERSION} && \
     ./configure --disable-shared --enable-static --without-pyunbound --with-libexpat=/usr --with-ssl=/usr --with-libevent=no --without-pythonmodule --disable-flto --with-pthreads --with-libunbound-only --with-pic && \
     make -j${NPROC:-$(nproc)} && \
@@ -135,7 +138,7 @@ RUN set -ex && git clone --recursive --branch ${MONERO_BRANCH} \
 
 # Begin final image build
 # Select Alpine 3 for the base image
-FROM alpine:3.24 AS final
+FROM alpine:3.24.1 AS final
 
 # Upgrade base image
 RUN set -ex && apk --update --no-cache upgrade
@@ -157,8 +160,7 @@ RUN set -ex && adduser -Ds /bin/bash monero \
     && chown -R monero:monero /home/monero/.bitmonero
 
 # Copy and enable entrypoint script
-ADD entrypoint.sh /entrypoint.sh
-RUN set -ex && chmod +x entrypoint.sh
+COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 
 # Install and configure fixuid and switch to MONERO_USER
