@@ -1,7 +1,7 @@
 version: '3.5'
 services:
   monerod:
-    image: sethsimmons/simple-monerod:latest
+    image: ghcr.io/sethforprivacy/simple-monerod:latest
     restart: unless-stopped
     container_name: monerod
     volumes:
@@ -18,7 +18,7 @@ services:
       - "--prune-blockchain"
   
   monero-wallet-rpc:
-    image: sethsimmons/simple-monero-wallet-rpc:latest
+    image: ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest
     restart: unless-stopped
     container_name: monero-wallet-rpc
     volumes:
