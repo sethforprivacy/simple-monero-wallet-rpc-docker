@@ -1,11 +1,9 @@
 # Initial base from https://github.com/leonardochaia/docker-monerod/blob/master/src/Dockerfile
 # Alpine specifics from https://github.com/cornfeedhobo/docker-monero/blob/f96711415f97af1fc9364977d1f5f5ecd313aad0/Dockerfile
 
-# Set Monero branch or tag to build
-ARG MONERO_BRANCH=v0.18.5.0
-
-# Set the proper HEAD commit hash for the given branch/tag in MONERO_BRANCH
-ARG MONERO_COMMIT_HASH=3ca4c30f73fe22d16a46cfba122556437da3618d
+# renovate: datasource=github-releases depName=monero-project/monero
+ARG MONERO_BRANCH=v0.18.5.1
+ARG MONERO_COMMIT_HASH=4f92268d7c16741cfb41e5bbe2aa46cc260a9ea5
 
 # Select Alpine 3 for the build image base
 FROM alpine:3.24.1 AS build
@@ -94,6 +92,7 @@ ENV USE_SINGLE_BUILDDIR=1
 ENV BOOST_DEBUG=1
 
 # Build expat, a dependency for libunbound
+# renovate: datasource=github-release-attachments depName=libexpat/libexpat versioning=semver-coerced
 ARG EXPAT_VERSION=R_2_6_4
 ARG EXPAT_CHECKSUM=8dc480b796163d4436e6f1352e71800a774f73dbae213f1860b60607d2a83ada
 RUN set -ex && EXPAT_SEMVER="$(echo ${EXPAT_VERSION} | sed 's/R_//;s/_/./g')" && \
@@ -108,6 +107,7 @@ RUN set -ex && EXPAT_SEMVER="$(echo ${EXPAT_VERSION} | sed 's/R_//;s/_/./g')" &&
 
 # Build libunbound for static builds
 WORKDIR /tmp
+# renovate: datasource=github-release-attachments depName=NLnetLabs/unbound versioning=semver-coerced
 ARG LIBUNBOUND_VERSION=release-1.22.0
 ARG LIBUNBOUND_CHECKSUM=4e32a36d57cda666b1c8ee02185ba73462330452162d1b9c31a5b91a853ba946
 RUN set -ex && wget "https://github.com/NLnetLabs/unbound/archive/refs/tags/${LIBUNBOUND_VERSION}.tar.gz"  && \
@@ -155,7 +155,7 @@ RUN set -ex && apk add --update --no-cache \
     zeromq
 
 # Add user and setup directories for monerod
-RUN set -ex && adduser -Ds /bin/bash monero \
+RUN set -ex && adduser -Ds /bin/ash monero \
     && mkdir -p /home/monero/.bitmonero \
     && chown -R monero:monero /home/monero/.bitmonero
 
@@ -169,7 +169,8 @@ ARG TARGETARCH
 # Checksums must be updated manually when bumping FIXUID_VERSION (upstream publishes no checksum file)
 ARG FIXUID_AMD64_CHECKSUM=8c47f64ec4eec60e79871796ea4097ead919f7fcdedace766da9510b78c5fa14
 ARG FIXUID_ARM64_CHECKSUM=827e0b480c38470b5defb84343be7bb4e85b9efcbf3780ac779374e8b040a969
-ARG FIXUID_VERSION="0.6.0"
+# renovate: datasource=github-releases depName=boxboat/fixuid
+ARG FIXUID_VERSION=0.6.0
 RUN set -ex && case ${TARGETARCH:-amd64} in \
         "arm64") FIXUID_ARCH="arm64"; FIXUID_CHECKSUM="${FIXUID_ARM64_CHECKSUM}" ;; \
         "amd64") FIXUID_ARCH="amd64"; FIXUID_CHECKSUM="${FIXUID_AMD64_CHECKSUM}" ;; \
