@@ -163,6 +163,9 @@ RUN set -ex && adduser -Ds /bin/ash monero \
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 
+# Copy healthcheck script
+COPY --chmod=0755 healthcheck.sh /healthcheck.sh
+
 # Install and configure fixuid and switch to MONERO_USER
 ARG MONERO_USER="monero"
 ARG TARGETARCH
@@ -195,6 +198,9 @@ WORKDIR /home/${MONERO_USER}/wallet
 
 # Expose default wallet-rpc port
 EXPOSE 18083
+
+# Add HEALTHCHECK against json_rpc get_version, honoring --rpc-login credentials if set
+HEALTHCHECK --interval=30s --timeout=5s CMD /healthcheck.sh || exit 1
 
 # Start monerod with sane defaults that are overridden by user input (if applicable)
 CMD ["--wallet-dir=/home/monero/wallet", "--rpc-bind-port=18083"]
