@@ -2,10 +2,10 @@
 # Alpine specifics from https://github.com/cornfeedhobo/docker-monero/blob/f96711415f97af1fc9364977d1f5f5ecd313aad0/Dockerfile
 
 # Set Monero branch or tag to build
-ARG MONERO_BRANCH=v0.18.5.0
+ARG MONERO_BRANCH=v0.18.5.1
 
 # Set the proper HEAD commit hash for the given branch/tag in MONERO_BRANCH
-ARG MONERO_COMMIT_HASH=3ca4c30f73fe22d16a46cfba122556437da3618d
+ARG MONERO_COMMIT_HASH=4f92268d7c16741cfb41e5bbe2aa46cc260a9ea5
 
 # Select Alpine 3 for the build image base
 FROM alpine:3.24.1 AS build
@@ -155,7 +155,7 @@ RUN set -ex && apk add --update --no-cache \
     zeromq
 
 # Add user and setup directories for monerod
-RUN set -ex && adduser -Ds /bin/bash monero \
+RUN set -ex && adduser -Ds /bin/ash monero \
     && mkdir -p /home/monero/.bitmonero \
     && chown -R monero:monero /home/monero/.bitmonero
 
