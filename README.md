@@ -17,7 +17,7 @@ sudo docker run -d --restart unless-stopped --name="monero-wallet-rpc" -v monero
 
 ## Security: hardened container runtime
 
-The example `docker-compose.yml` applies the same hardening as [`simple-monerod-docker`](https://github.com/sethforprivacy/simple-monerod-docker): every Linux capability is dropped except the six `fixuid` requires (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID, SETPCAP`), total memory+swap is capped at 4 G, and pids are bounded at 512. The default `CMD` also caps rotated log files at 7 × 10 MB instead of monerod's 100 MB × 50 default.
+The example `docker-compose.yml` applies the same hardening as [`simple-monerod-docker`](https://github.com/sethforprivacy/simple-monerod-docker): every Linux capability is dropped except the six `fixuid` requires (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID, SETPCAP`). Total memory and swap are bounded by a single `MONEROD_MEM_LIMIT` knob (default 8 G) so they always stay equal — host swap stays out of reach at any size, and raising the limit on hosts with more RAM grows the lmdb page-cache window the services get. Pids are bounded by `MONEROD_PIDS_LIMIT` (default 512). The default `CMD` also caps rotated log files at 7 × 10 MB instead of monerod's 100 MB × 50 default.
 
 Note that `no-new-privileges`, `read_only` root filesystem and a fully-empty `cap_drop: [ALL]` cannot be used here because the daemon is started through `fixuid`, a setuid-root helper — each of those was verified to make the container exit at startup (see the monerod README for details).
 

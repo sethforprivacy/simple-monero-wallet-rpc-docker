@@ -32,12 +32,15 @@ services:
       - SETUID
       - SETGID
       - SETPCAP
-    memswap_limit: 4G
+    # Single knob keeps memory == swap, so host swap stays out of reach at any
+    # size. Raise MONEROD_MEM_LIMIT on hosts with more RAM: the lmdb page-cache
+    # window the node gets is charged to the cgroup and scales with the limit.
+    memswap_limit: ${MONEROD_MEM_LIMIT:-8G}
     deploy:
       resources:
         limits:
-          memory: 4G
-          pids: 512
+          memory: ${MONEROD_MEM_LIMIT:-8G}
+          pids: ${MONEROD_PIDS_LIMIT:-512}
 
   monero-wallet-rpc:
     image: ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest
@@ -63,12 +66,15 @@ services:
       - SETUID
       - SETGID
       - SETPCAP
-    memswap_limit: 4G
+    # Single knob keeps memory == swap, so host swap stays out of reach at any
+    # size. Raise MONEROD_MEM_LIMIT on hosts with more RAM: the lmdb page-cache
+    # window the node gets is charged to the cgroup and scales with the limit.
+    memswap_limit: ${MONEROD_MEM_LIMIT:-8G}
     deploy:
       resources:
         limits:
-          memory: 4G
-          pids: 512
+          memory: ${MONEROD_MEM_LIMIT:-8G}
+          pids: ${MONEROD_PIDS_LIMIT:-512}
 
   tor:
     image: goldy/tor-hidden-service:latest
