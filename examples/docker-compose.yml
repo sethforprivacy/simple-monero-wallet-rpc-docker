@@ -48,6 +48,8 @@ services:
     ports:
       - 127.0.0.1:18083:18083
     command:
+      - "--wallet-dir=/home/monero/wallet"
+      - "--rpc-bind-port=18083"
       - "--daemon-address=monerod:18089"
       - "--trusted-daemon"
       - "--max-log-file-size=10000000"
