@@ -15,6 +15,12 @@ I will always release the latest Monero version under the `latest` tag as well a
 sudo docker run -d --restart unless-stopped --name="monero-wallet-rpc" -v monero-wallet-rpc-data:/home/monero ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest --daemon-host 127.0.0.1:18089 --rpc-bind-port 18083 --disable-rpc-login --trusted-daemon
 ```
 
+## Security: hardened container runtime
+
+The example `docker-compose.yml` applies the same hardening as [`simple-monerod-docker`](https://github.com/sethforprivacy/simple-monerod-docker): every Linux capability is dropped except the six `fixuid` requires (`CHOWN, FOWNER, DAC_OVERRIDE, SETUID, SETGID, SETPCAP`), total memory+swap is capped at 4 G, and pids are bounded at 512. The default `CMD` also caps rotated log files at 7 × 10 MB instead of monerod's 100 MB × 50 default.
+
+Note that `no-new-privileges`, `read_only` root filesystem and a fully-empty `cap_drop: [ALL]` cannot be used here because the daemon is started through `fixuid`, a setuid-root helper — each of those was verified to make the container exit at startup (see the monerod README for details).
+
 ## Copyrights
 
 Code from this repository is released under MIT license. [Monero License](https://github.com/monero-project/monero/blob/master/LICENSE), [@leonardochaia License](https://github.com/leonardochaia/docker-monerod/blob/master/LICENSE)

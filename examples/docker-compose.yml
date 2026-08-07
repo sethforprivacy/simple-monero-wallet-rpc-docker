@@ -16,7 +16,30 @@ services:
       - "--no-igd"
       - "--enable-dns-blocklist"
       - "--prune-blockchain"
-  
+      # Bound log file writes (inside the data volume, i.e. host disk):
+      # 10 MB per file, 7 rotated files max instead of monerod's 100 MB x 50.
+      - "--max-log-file-size=10000000"
+      - "--max-log-files=7"
+    # See the hardening notes in simple-monerod-docker's README: these images
+    # start their daemons through fixuid (setuid-root), which forbids
+    # no-new-privileges, read_only and a full cap_drop. Drop every capability
+    # except the ones fixuid needs, and bound memory/swap/pids.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - SETPCAP
+    memswap_limit: 4G
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          pids: 512
+
   monero-wallet-rpc:
     image: ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest
     restart: unless-stopped
@@ -28,6 +51,23 @@ services:
     command:
       - "--daemon-address=monerod:18089"
       - "--trusted-daemon"
+      - "--max-log-file-size=10000000"
+      - "--max-log-files=7"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - SETPCAP
+    memswap_limit: 4G
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          pids: 512
 
   tor:
     image: goldy/tor-hidden-service:latest
