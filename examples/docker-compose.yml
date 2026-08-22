@@ -1,4 +1,3 @@
-version: '3.5'
 services:
   monerod:
     image: ghcr.io/sethforprivacy/simple-monerod:latest
@@ -16,7 +15,33 @@ services:
       - "--no-igd"
       - "--enable-dns-blocklist"
       - "--prune-blockchain"
-  
+      # Bound log file writes (inside the data volume, i.e. host disk):
+      # 10 MB per file, 7 rotated files max instead of monerod's 100 MB x 50.
+      - "--max-log-file-size=10000000"
+      - "--max-log-files=7"
+    # See the hardening notes in simple-monerod-docker's README: these images
+    # start their daemons through fixuid (setuid-root), which forbids
+    # no-new-privileges, read_only and a full cap_drop. Drop every capability
+    # except the ones fixuid needs, and bound memory/swap/pids.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - SETPCAP
+    # Single knob keeps memory == swap, so host swap stays out of reach at any
+    # size. Raise MONEROD_MEM_LIMIT on hosts with more RAM: the lmdb page-cache
+    # window the node gets is charged to the cgroup and scales with the limit.
+    memswap_limit: ${MONEROD_MEM_LIMIT:-8G}
+    deploy:
+      resources:
+        limits:
+          memory: ${MONEROD_MEM_LIMIT:-8G}
+          pids: ${MONEROD_PIDS_LIMIT:-512}
+
   monero-wallet-rpc:
     image: ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest
     restart: unless-stopped
@@ -26,8 +51,30 @@ services:
     ports:
       - 127.0.0.1:18083:18083
     command:
+      - "--wallet-dir=/home/monero/wallet"
+      - "--rpc-bind-port=18083"
       - "--daemon-address=monerod:18089"
       - "--trusted-daemon"
+      - "--max-log-file-size=10000000"
+      - "--max-log-files=7"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - SETPCAP
+    # Single knob keeps memory == swap, so host swap stays out of reach at any
+    # size. Raise MONEROD_MEM_LIMIT on hosts with more RAM: the lmdb page-cache
+    # window the node gets is charged to the cgroup and scales with the limit.
+    memswap_limit: ${MONEROD_MEM_LIMIT:-8G}
+    deploy:
+      resources:
+        limits:
+          memory: ${MONEROD_MEM_LIMIT:-8G}
+          pids: ${MONEROD_PIDS_LIMIT:-512}
 
   tor:
     image: goldy/tor-hidden-service:latest
@@ -41,7 +88,7 @@ services:
     volumes:
         - tor-keys:/var/lib/tor/hidden_service/
 
-autoheal:
+  autoheal:
     image: willfarrell/autoheal:latest
     container_name: autoheal
     restart: unless-stopped
@@ -50,7 +97,7 @@ autoheal:
     volumes:
         - "/var/run/docker.sock:/var/run/docker.sock"
 
-watchtower:
+  watchtower:
     image: containrrr/watchtower:latest
     container_name: watchtower
     restart: unless-stopped
@@ -60,3 +107,4 @@ watchtower:
 volumes:
     bitmonero:
     tor-keys:
+    monero-wallet-rpc-data:

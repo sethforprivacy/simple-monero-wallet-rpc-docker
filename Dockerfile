@@ -203,4 +203,6 @@ EXPOSE 18083
 HEALTHCHECK --interval=30s --timeout=5s CMD /healthcheck.sh || exit 1
 
 # Start monerod with sane defaults that are overridden by user input (if applicable)
-CMD ["--wallet-dir=/home/monero/wallet", "--rpc-bind-port=18083"]
+# Logs are written into the home directory (host disk via the volume); cap
+# rotated log files so a busy instance can't pile up 100 MB x 50 files.
+CMD ["--wallet-dir=/home/monero/wallet", "--rpc-bind-port=18083", "--max-log-file-size=10000000", "--max-log-files=7"]
