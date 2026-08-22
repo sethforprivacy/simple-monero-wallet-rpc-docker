@@ -15,6 +15,20 @@ I will always release the latest Monero version under the `latest` tag as well a
 sudo docker run -d --restart unless-stopped --name="monero-wallet-rpc" -v monero-wallet-rpc-data:/home/monero ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest --daemon-host 127.0.0.1:18089 --rpc-bind-port 18083 --disable-rpc-login --trusted-daemon
 ```
 
+## Running as a different user
+
+The container starts as root only briefly: the entrypoint normalizes ownership of the data and wallet directories, then drops all privileges and runs the wallet via [su-exec](https://github.com/ncopa/su-exec). By default it runs as UID/GID 1000 (the built-in `monero` user).
+
+To run as a different UID/GID — for example when the wallet directory lives on an NFS mount or a NAS owned by another host user — set the `PUID` and `PGID` environment variables:
+
+```yaml
+environment:
+  - PUID=1001
+  - PGID=1001
+```
+
+Unlike the previous fixuid-based setup, the image contains no setuid binaries and is compatible with `security-opt: ["no-new-privileges:true"]`.
+
 ## Copyrights
 
 Code from this repository is released under MIT license. [Monero License](https://github.com/monero-project/monero/blob/master/LICENSE), [@leonardochaia License](https://github.com/leonardochaia/docker-monerod/blob/master/LICENSE)
