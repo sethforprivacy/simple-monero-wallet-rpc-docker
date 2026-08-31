@@ -8,7 +8,7 @@ ARG MONERO_BRANCH=v0.18.5.1
 ARG MONERO_COMMIT_HASH=4f92268d7c16741cfb41e5bbe2aa46cc260a9ea5
 
 # Select Alpine 3 for the build image base
-FROM alpine:3.24.1 AS build
+FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS build
 LABEL author="seth@sethforprivacy.com" \
       maintainer="seth@sethforprivacy.com"
 
@@ -109,7 +109,7 @@ RUN set -ex && strip --strip-unneeded /monero/build/release/bin/monero-wallet-rp
 
 # Begin final image build
 # Select Alpine 3 for the base image
-FROM alpine:3.24.1 AS final
+FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS final
 
 # Upgrade base image
 RUN set -ex && apk --update --no-cache upgrade
