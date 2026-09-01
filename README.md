@@ -12,8 +12,21 @@ I will always release the latest Monero version under the `latest` tag as well a
 ## Recommended usage
 
 ```bash
-sudo docker run -d --restart unless-stopped --name="monero-wallet-rpc" -v monero-wallet-rpc-data:/home/monero ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest --daemon-host 127.0.0.1:18089 --rpc-bind-port 18083 --disable-rpc-login --trusted-daemon
+sudo docker run -d --restart unless-stopped --name="monero-wallet-rpc" -v monero-wallet-rpc-data:/home/monero ghcr.io/sethforprivacy/simple-monero-wallet-rpc:latest --daemon-host 127.0.0.1:18089 --rpc-bind-port 18083 --rpc-login username:password --trusted-daemon
 ```
+
+## Security: Docker port publishing (0.0.0.0) and UFW
+
+Docker publishes ports on all interfaces by default. If you use `-p` with `docker run` (for example, `-p 18083:18083`) or define `ports:` in `docker-compose.yml` (for example, `- 18083:18083`), Docker binds those ports to `0.0.0.0` unless you explicitly specify a host IP. This makes the service reachable from any network interface on the host.
+
+This can also bypass UFW rules. Docker installs its own iptables rules that accept traffic to published ports before UFW's filter rules are evaluated. As a result, even if UFW's default policy is to deny incoming traffic, a published Docker port may still be reachable from the internet.
+
+`monero-wallet-rpc` can open, create, and transfer funds from any wallet in its wallet directory, so it must never be exposed without authentication:
+
+- By default this image binds the RPC to `127.0.0.1` (loopback) and does not pass `--confirm-external-bind`, so a published port with no `--rpc-login` configured still only serves loopback traffic. Keep your daemon and app on the same host.
+- To expose the RPC beyond the host you MUST configure `--rpc-login username:password`; the entrypoint then binds to `0.0.0.0` with `--confirm-external-bind`, keeping the port authenticated.
+- If you deliberately want an unauthenticated RPC reachable outside the host, set `RPC_EXPOSE_UNAUTHENTICATED=1` to force `0.0.0.0` — this is strongly discouraged.
+- Regardless of bind address, prefer binding published ports only to loopback: `-p 127.0.0.1:18083:18083` or `ports: ["127.0.0.1:18083:18083"]`.
 
 ## Running as a different user
 
