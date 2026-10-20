@@ -1,10 +1,11 @@
 # Initial base from https://github.com/leonardochaia/docker-monerod/blob/master/src/Dockerfile
 # Alpine specifics from https://github.com/cornfeedhobo/docker-monero/blob/f96711415f97af1fc9364977d1f5f5ecd313aad0/Dockerfile
 
-# Set Monero branch or tag to build
+# Monero tag to build and the commit it must resolve to. Keep the renovate
+# comment and both ARGs on adjacent lines: the regex manager in
+# .github/renovate.json only matches them that way.
+# renovate: datasource=github-releases depName=monero-project/monero versioning=loose
 ARG MONERO_BRANCH=v0.18.5.4
-
-# Set the proper HEAD commit hash for the given branch/tag in MONERO_BRANCH
 ARG MONERO_COMMIT_HASH=85f036ba7019cd36f08e8a38a27c37ea7b522618
 
 # Select Alpine 3 for the build image base
@@ -62,23 +63,26 @@ ENV CXXFLAGS='-fPIC'
 ENV CCACHE_DIR=/ccache
 
 # Build expat, a dependency for libunbound
-ARG EXPAT_VERSION="2.6.4"
-ARG EXPAT_HASH="8dc480b796163d4436e6f1352e71800a774f73dbae213f1860b60607d2a83ada"
-RUN set -ex && wget https://github.com/libexpat/libexpat/releases/download/R_2_6_4/expat-${EXPAT_VERSION}.tar.bz2 && \
-    echo "${EXPAT_HASH}  expat-${EXPAT_VERSION}.tar.bz2" | sha256sum -c && \
-    tar -xf expat-${EXPAT_VERSION}.tar.bz2 && \
-    rm expat-${EXPAT_VERSION}.tar.bz2 && \
-    cd expat-${EXPAT_VERSION} && \
+# renovate: datasource=github-release-attachments depName=libexpat/libexpat versioning=semver-coerced
+ARG EXPAT_VERSION=R_2_6_4
+ARG EXPAT_CHECKSUM=8dc480b796163d4436e6f1352e71800a774f73dbae213f1860b60607d2a83ada
+RUN set -ex && EXPAT_SEMVER="$(echo ${EXPAT_VERSION} | sed 's/R_//;s/_/./g')" && \
+    wget "https://github.com/libexpat/libexpat/releases/download/${EXPAT_VERSION}/expat-${EXPAT_SEMVER}.tar.bz2" && \
+    echo "${EXPAT_CHECKSUM}  expat-${EXPAT_SEMVER}.tar.bz2" | sha256sum -c && \
+    tar -xf expat-${EXPAT_SEMVER}.tar.bz2 && \
+    rm expat-${EXPAT_SEMVER}.tar.bz2 && \
+    cd expat-${EXPAT_SEMVER} && \
     ./configure --enable-static --disable-shared --prefix=/usr && \
     make -j${NPROC:-$(nproc)} && \
     make -j${NPROC:-$(nproc)} install
 
 # Build libunbound for static builds
 WORKDIR /tmp
-ARG LIBUNBOUND_VERSION="release-1.22.0"
-ARG LIBUNBOUND_HASH="4e32a36d57cda666b1c8ee02185ba73462330452162d1b9c31a5b91a853ba946"
+# renovate: datasource=github-release-attachments depName=NLnetLabs/unbound versioning=semver-coerced
+ARG LIBUNBOUND_VERSION=release-1.22.0
+ARG LIBUNBOUND_CHECKSUM=4e32a36d57cda666b1c8ee02185ba73462330452162d1b9c31a5b91a853ba946
 RUN set -ex && wget "https://github.com/NLnetLabs/unbound/archive/refs/tags/${LIBUNBOUND_VERSION}.tar.gz" && \
-    echo "${LIBUNBOUND_HASH}  ${LIBUNBOUND_VERSION}.tar.gz" | sha256sum -c && \
+    echo "${LIBUNBOUND_CHECKSUM}  ${LIBUNBOUND_VERSION}.tar.gz" | sha256sum -c && \
     tar -xzf ${LIBUNBOUND_VERSION}.tar.gz && \
     rm ${LIBUNBOUND_VERSION}.tar.gz && \
     cd unbound-${LIBUNBOUND_VERSION} && \
